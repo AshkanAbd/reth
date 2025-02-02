@@ -5,7 +5,7 @@ use reth_chainspec::{EthChainSpec, EthereumHardforks};
 use reth_cli::chainspec::ChainSpecParser;
 use reth_cli_runner::CliContext;
 use reth_cli_util::parse_socket_address;
-use reth_db::{init_db, DatabaseEnv};
+use reth_db::{init_db, open_db_read_only, DatabaseEnv};
 use reth_ethereum_cli::chainspec::EthereumChainSpecParser;
 use reth_node_builder::{NodeBuilder, WithLaunchContext};
 use reth_node_core::{
@@ -63,6 +63,9 @@ pub struct NodeCommand<
     /// - `WS_RPC_PORT`: default + `instance` * 2 - 2
     #[arg(long, value_name = "INSTANCE", global = true, default_value_t = 1, value_parser = value_parser!(u16).range(..=200))]
     pub instance: u16,
+
+    #[arg(long, value_name = "READONLY", global = true, default_value_t = 0, value_parser = value_parser!(u16).range(..=200))]
+    pub readonly: u16,
 
     /// Sets all ports to unused, allowing the OS to choose random unused ports when sockets are
     /// bound.
@@ -165,6 +168,7 @@ impl<
             pruning,
             ext,
             engine,
+            readonly
         } = self;
 
         // set up node config
@@ -188,8 +192,13 @@ impl<
         let data_dir = node_config.datadir();
         let db_path = data_dir.db();
 
-        tracing::info!(target: "reth::cli", path = ?db_path, "Opening database");
-        let database = Arc::new(init_db(db_path.clone(), self.db.database_args())?.with_metrics());
+        let database = if readonly == 0 {
+            tracing::info!(target: "reth::cli", path = ?db_path, "Opening database as RW");
+            Arc::new(init_db(db_path.clone(), self.db.database_args())?.with_metrics())
+        } else {
+            tracing::info!(target: "reth::cli", path = ?db_path, "Opening database as Readonly");
+            Arc::new(open_db_read_only(db_path.clone(), self.db.database_args())?.with_metrics())
+        };
 
         if with_unused_ports {
             node_config = node_config.with_unused_ports();
