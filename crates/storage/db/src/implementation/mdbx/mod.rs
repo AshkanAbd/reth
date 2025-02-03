@@ -443,6 +443,7 @@ impl DatabaseEnv {
             metrics: None,
             _lock_file,
         };
+        tracing::info!(target: "reth::cli", "Env is ready");
 
         Ok(env)
     }
