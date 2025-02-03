@@ -739,12 +739,21 @@ impl EnvironmentBuilder {
                     Err(_) => return Err(Error::Invalid),
                 };
                 tracing::info!(target: "reth::cli", path = ?path, flags= ?(self.flags.make_flags1() | self.kind.extra_flags1(),), "Here14");
-                mdbx_result(ffi::mdbx_env_open(
+                let b = mdbx_result(ffi::mdbx_env_open(
                     env,
                     path.as_ptr(),
                     self.flags.make_flags() | self.kind.extra_flags(),
                     mode,
-                ))?;
+                ));
+                match b {
+                    Ok(v) => {
+                        tracing::info!(target: "reth::cli", Open = ?v, "Res");
+                    }
+                    Err(e) => {
+                        tracing::info!(target: "reth::cli", Error = ?e, "Err");
+                    }
+                }
+                
                 tracing::info!(target: "reth::cli", "Here15");
 
                 for (opt, v) in [
