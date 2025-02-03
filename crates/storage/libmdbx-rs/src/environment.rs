@@ -288,11 +288,9 @@ impl EnvironmentKind {
     pub(crate) const fn extra_flags(&self) -> ffi::MDBX_env_flags_t {
         match self {
             Self::Default => {
-                tracing::info!(target: "reth::cli", MDBX_ENV_DEFAULTS = ?true, "Flags");
                 ffi::MDBX_ENV_DEFAULTS
             },
             Self::WriteMap => {
-                tracing::info!(target: "reth::cli", MDBX_WRITEMAP = ?true, "Flags");
                 ffi::MDBX_WRITEMAP
             },
         }
