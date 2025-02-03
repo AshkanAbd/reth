@@ -184,7 +184,7 @@ where
         )?;
 
         // The new engine writes directly to static files. This ensures that they're up to the tip.
-        pipeline.move_to_static_files()?;
+        // pipeline.move_to_static_files()?;
 
         let pipeline_events = pipeline.events();
 

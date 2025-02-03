@@ -28,6 +28,7 @@ use std::{
     sync::Arc,
     time::{SystemTime, UNIX_EPOCH},
 };
+use reth_tracing::tracing;
 use tx::Tx;
 
 pub mod cursor;
@@ -285,7 +286,9 @@ impl DatabaseEnv {
         kind: DatabaseEnvKind,
         args: DatabaseArguments,
     ) -> Result<Self, DatabaseError> {
+        tracing::info!(target: "reth::cli", mode = ?kind, "Opening database");
         let _lock_file = if kind.is_rw() {
+            tracing::info!(target: "reth::cli", "Mode is RW, acquiring lock");
             StorageLock::try_acquire(path)
                 .map_err(|err| DatabaseError::Other(err.to_string()))?
                 .into()
@@ -311,6 +314,7 @@ impl DatabaseEnv {
         inner_env.set_geometry(args.geometry);
 
         fn is_current_process(id: u32) -> bool {
+            tracing::info!(target: "reth::cli", id = ?id, pid = ?std::process::id(), parentid= ?std::os::unix::process::parent_id(), "Checking process...");
             #[cfg(unix)]
             {
                 id == std::os::unix::process::parent_id() || id == std::process::id()
@@ -339,6 +343,16 @@ impl DatabaseEnv {
                     "External process has a long-lived database transaction that grows the database file. \
                      Use shorter-lived read transactions or shut down the node."
                 };
+                tracing::info!(
+                    target: "reth::cli",
+                    ?process_id,
+                    ?thread_id,
+                    ?read_txn_id,
+                    ?gap,
+                    ?space,
+                    ?retry,
+                    "{message}"
+                );
                 reth_tracing::tracing::warn!(
                     target: "storage::db::mdbx",
                     ?process_id,
@@ -423,6 +437,7 @@ impl DatabaseEnv {
             inner_env.set_max_read_transaction_duration(max_read_transaction_duration);
         }
 
+        tracing::info!(target: "reth::cli", lockfile = ?_lock_file, "Lock file: ");
         let env = Self {
             inner: inner_env.open(path).map_err(|e| DatabaseError::Open(e.into()))?,
             metrics: None,
