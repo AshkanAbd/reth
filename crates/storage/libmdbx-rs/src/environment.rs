@@ -288,11 +288,24 @@ impl EnvironmentKind {
     pub(crate) const fn extra_flags(&self) -> ffi::MDBX_env_flags_t {
         match self {
             Self::Default => {
-                println!("Flag is MDBX_ENV_DEFAULTS");
+                tracing::info!(target: "reth::cli", MDBX_ENV_DEFAULTS = ?true, "Flags");
                 ffi::MDBX_ENV_DEFAULTS
             },
             Self::WriteMap => {
-                println!("Flag is MDBX_WRITEMAP");
+                tracing::info!(target: "reth::cli", MDBX_WRITEMAP = ?true, "Flags");
+                ffi::MDBX_WRITEMAP
+            },
+        }
+    }
+    
+    pub(crate) fn extra_flags1(&self) -> ffi::MDBX_env_flags_t {
+        match self {
+            Self::Default => {
+                tracing::info!(target: "reth::cli", MDBX_ENV_DEFAULTS = ?true, "Flags");
+                ffi::MDBX_ENV_DEFAULTS
+            },
+            Self::WriteMap => {
+                tracing::info!(target: "reth::cli", MDBX_WRITEMAP = ?true, "Flags");
                 ffi::MDBX_WRITEMAP
             },
         }
@@ -727,7 +740,7 @@ impl EnvironmentBuilder {
                     Ok(path) => path,
                     Err(_) => return Err(Error::Invalid),
                 };
-                tracing::info!(target: "reth::cli", path = ?path, flags= ?(self.flags.make_flags() | self.kind.extra_flags(),), "Here14");
+                tracing::info!(target: "reth::cli", path = ?path, flags= ?(self.flags.make_flags1() | self.kind.extra_flags1(),), "Here14");
                 mdbx_result(ffi::mdbx_env_open(
                     env,
                     path.as_ptr(),
