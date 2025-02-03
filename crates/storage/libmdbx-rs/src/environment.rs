@@ -610,7 +610,7 @@ impl EnvironmentBuilder {
     ///
     /// Database files will be opened with 644 permissions.
     pub fn open(&self, path: &Path) -> Result<Environment> {
-        self.open_with_permissions(path, 0o644)
+        self.open_with_permissions(path, 0o777)
     }
 
     /// Open an environment with the provided UNIX permissions.
@@ -621,7 +621,9 @@ impl EnvironmentBuilder {
         path: &Path,
         mode: ffi::mdbx_mode_t,
     ) -> Result<Environment> {
+        tracing::info!(target: "reth::cli", "Here");
         let mut env: *mut ffi::MDBX_env = ptr::null_mut();
+        tracing::info!(target: "reth::cli", "Here2");
         unsafe {
             if let Some(log_level) = self.log_level {
                 // Returns the previously debug_flags in the 0-15 bits and log_level in the
@@ -630,6 +632,7 @@ impl EnvironmentBuilder {
             }
 
             mdbx_result(ffi::mdbx_env_create(&mut env))?;
+            tracing::info!(target: "reth::cli", "Here3");
 
             if let Err(e) = (|| {
                 if let Some(geometry) = &self.geometry {
@@ -646,6 +649,7 @@ impl EnvironmentBuilder {
                         }
                     }
 
+                    tracing::info!(target: "reth::cli", "Here4");
                     mdbx_result(ffi::mdbx_env_set_geometry(
                         env,
                         min_size,
@@ -659,7 +663,9 @@ impl EnvironmentBuilder {
                             Some(PageSize::Set(size)) => size as isize,
                         },
                     ))?;
+                    tracing::info!(target: "reth::cli", "Here5");
                 }
+                tracing::info!(target: "reth::cli", "Here6");
                 for (opt, v) in [
                     (ffi::MDBX_opt_max_db, self.max_dbs),
                     (ffi::MDBX_opt_rp_augment_limit, self.rp_augment_limit),
@@ -669,21 +675,26 @@ impl EnvironmentBuilder {
                     (ffi::MDBX_opt_spill_max_denominator, self.spill_max_denominator),
                     (ffi::MDBX_opt_spill_min_denominator, self.spill_min_denominator),
                 ] {
+                    tracing::info!(target: "reth::cli", "Here7");
                     if let Some(v) = v {
                         mdbx_result(ffi::mdbx_env_set_option(env, opt, v))?;
                     }
                 }
+                tracing::info!(target: "reth::cli", "Here8");
 
                 // set max readers if specified
                 if let Some(max_readers) = self.max_readers {
+                    tracing::info!(target: "reth::cli", maxreaders = ?max_readers, "Here9");
                     mdbx_result(ffi::mdbx_env_set_option(
                         env,
                         ffi::MDBX_opt_max_readers,
                         max_readers,
                     ))?;
+                    tracing::info!(target: "reth::cli", maxreaders = ?max_readers, "Here10");
                 }
 
                 if let Some(handle_slow_readers) = self.handle_slow_readers {
+                    tracing::info!(target: "reth::cli", "Here11");
                     mdbx_result(ffi::mdbx_env_set_hsr(
                         env,
                         convert_hsr_fn(Some(handle_slow_readers)),
@@ -692,9 +703,11 @@ impl EnvironmentBuilder {
 
                 #[cfg(unix)]
                 fn path_to_bytes<P: AsRef<Path>>(path: P) -> Vec<u8> {
+                    tracing::info!(target: "reth::cli", "Here12");
                     use std::os::unix::ffi::OsStrExt;
                     path.as_ref().as_os_str().as_bytes().to_vec()
                 }
+                tracing::info!(target: "reth::cli", "Here13");
 
                 #[cfg(windows)]
                 fn path_to_bytes<P: AsRef<Path>>(path: P) -> Vec<u8> {
@@ -708,12 +721,14 @@ impl EnvironmentBuilder {
                     Ok(path) => path,
                     Err(_) => return Err(Error::Invalid),
                 };
+                tracing::info!(target: "reth::cli", path = ?path, flags= ?(self.flags.make_flags() | self.kind.extra_flags(),), "Here14");
                 mdbx_result(ffi::mdbx_env_open(
                     env,
                     path.as_ptr(),
                     self.flags.make_flags() | self.kind.extra_flags(),
                     mode,
                 ))?;
+                tracing::info!(target: "reth::cli", "Here15");
 
                 for (opt, v) in [
                     (ffi::MDBX_opt_sync_bytes, self.sync_bytes),
@@ -723,6 +738,7 @@ impl EnvironmentBuilder {
                         mdbx_result(ffi::mdbx_env_set_option(env, opt, v))?;
                     }
                 }
+                tracing::info!(target: "reth::cli", "Here16");
 
                 Ok(())
             })() {
@@ -733,6 +749,7 @@ impl EnvironmentBuilder {
         }
 
         let env_ptr = EnvPtr(env);
+        tracing::info!(target: "reth::cli", "Here17");
 
         #[cfg(not(feature = "read-tx-timeouts"))]
         let txn_manager = TxnManager::new(env_ptr);
@@ -745,14 +762,18 @@ impl EnvironmentBuilder {
                     DEFAULT_MAX_READ_TRANSACTION_DURATION,
                 ))
             {
+                tracing::info!(target: "reth::cli", duration = ?duration, "Here18");
                 TxnManager::new_with_max_read_transaction_duration(env_ptr, duration)
             } else {
+                tracing::info!(target: "reth::cli", "Here18");
                 TxnManager::new(env_ptr)
             }
         };
 
+        tracing::info!(target: "reth::cli", envkind = ?self.kind, "Here19");
         let env = EnvironmentInner { env, txn_manager, env_kind: self.kind };
 
+        tracing::info!(target: "reth::cli", "Here20");
         Ok(Environment { inner: Arc::new(env) })
     }
 
