@@ -287,8 +287,14 @@ impl EnvironmentKind {
     /// Additional flags required when opening the environment.
     pub(crate) const fn extra_flags(&self) -> ffi::MDBX_env_flags_t {
         match self {
-            Self::Default => ffi::MDBX_ENV_DEFAULTS,
-            Self::WriteMap => ffi::MDBX_WRITEMAP,
+            Self::Default => {
+                tracing::info!(target: "reth::cli", MDBX_ENV_DEFAULTS = ?true, "Flags");
+                ffi::MDBX_ENV_DEFAULTS
+            },
+            Self::WriteMap => {
+                tracing::info!(target: "reth::cli", MDBX_WRITEMAP = ?true, "Flags");
+                ffi::MDBX_WRITEMAP
+            },
         }
     }
 }
