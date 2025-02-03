@@ -146,41 +146,41 @@ impl EnvironmentFlags {
         let mut flags = 0;
 
         if self.no_sub_dir {
-            tracing::info!(target: "reth::cli", MDBX_NOSUBDIR = ?true, "Flags");
+            println!("Flag is MDBX_NOSUBDIR");
             flags |= ffi::MDBX_NOSUBDIR;
         }
 
         if self.exclusive {
-            tracing::info!(target: "reth::cli", MDBX_EXCLUSIVE = ?true, "Flags");
+            println!("Flag is MDBX_EXCLUSIVE");
             flags |= ffi::MDBX_EXCLUSIVE;
         }
 
         if self.accede {
-            tracing::info!(target: "reth::cli", MDBX_ACCEDE = ?true, "Flags");
+            println!("Flag is MDBX_ACCEDE");
             flags |= ffi::MDBX_ACCEDE;
         }
 
         match self.mode {
             Mode::ReadOnly => {
-                tracing::info!(target: "reth::cli", MDBX_RDONLY = ?true, "Flags");
+                println!("Flag is MDBX_RDONLY");
                 flags |= ffi::MDBX_RDONLY;
             }
             Mode::ReadWrite { sync_mode } => {
                 flags |= match sync_mode {
                     SyncMode::Durable => {
-                        tracing::info!(target: "reth::cli", MDBX_SYNC_DURABLE = ?true, "Flags");
+                        println!("Flag is MDBX_SYNC_DURABLE");
                         ffi::MDBX_SYNC_DURABLE 
                     },
                     SyncMode::NoMetaSync => {
-                        tracing::info!(target: "reth::cli", MDBX_NOMETASYNC = ?true, "Flags");
+                        println!("Flag is MDBX_NOMETASYNC");
                         ffi::MDBX_NOMETASYNC
                     },
                     SyncMode::SafeNoSync => {
-                        tracing::info!(target: "reth::cli", MDBX_SAFE_NOSYNC = ?true, "Flags");
+                        println!("Flag is MDBX_SAFE_NOSYNC");
                         ffi::MDBX_SAFE_NOSYNC
                     },
                     SyncMode::UtterlyNoSync => {
-                        tracing::info!(target: "reth::cli", MDBX_UTTERLY_NOSYNC = ?true, "Flags");
+                        println!("Flag is MDBX_UTTERLY_NOSYNC");
                         ffi::MDBX_UTTERLY_NOSYNC
                     },
                 };
@@ -188,26 +188,26 @@ impl EnvironmentFlags {
         }
 
         if self.no_rdahead {
-            tracing::info!(target: "reth::cli", MDBX_NORDAHEAD = ?true, "Flags");
+            println!("Flag is MDBX_NORDAHEAD");
             flags |= ffi::MDBX_NORDAHEAD;
         }
 
         if self.no_meminit {
-            tracing::info!(target: "reth::cli", MDBX_NOMEMINIT = ?true, "Flags");
+            println!("Flag is MDBX_NOMEMINIT");
             flags |= ffi::MDBX_NOMEMINIT;
         }
 
         if self.coalesce {
-            tracing::info!(target: "reth::cli", MDBX_COALESCE = ?true, "Flags");
+            println!("Flag is MDBX_COALESCE");
             flags |= ffi::MDBX_COALESCE;
         }
 
         if self.liforeclaim {
-            tracing::info!(target: "reth::cli", MDBX_LIFORECLAIM = ?true, "Flags");
+            println!("Flag is MDBX_LIFORECLAIM");
             flags |= ffi::MDBX_LIFORECLAIM;
         }
 
-        tracing::info!(target: "reth::cli", MDBX_NOTLS = ?true, "Flags");
+        println!("Flag is MDBX_NOTLS");
         flags |= ffi::MDBX_NOTLS;
 
         flags
